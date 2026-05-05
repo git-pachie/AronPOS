@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Aron POS</string>
+    <string name="submit_order">SUBMIT ORDER</string>
+    <string name="new_order">NEW ORDER</string>
+    <string name="settings">Settings</string>
+    <string name="refresh">Refresh</string>
+</resources>

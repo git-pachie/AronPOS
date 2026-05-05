@@ -1,0 +1,105 @@
+@model RestaurantAdmin.Models.Order
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<div class="d-flex align-items-center mb-4 gap-2">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h4 class="fw-bold mb-0"><i class="bi bi-receipt me-2 text-primary"></i>Order Details</h4>
+</div>
+
+<div class="row g-4">
+
+    <!-- Left: Order info -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="fw-bold fs-5 text-primary">@Model.OrderNumber</span>
+                    <span class="badge bg-success fs-6">
+                        <i class="bi bi-check-circle me-1"></i>@Model.Status
+                    </span>
+                </div>
+
+                <hr />
+
+                <dl class="row mb-0">
+                    <dt class="col-5 text-muted small">Date</dt>
+                    <dd class="col-7 small">@Model.OrderDate.ToLocalTime().ToString("MMM dd, yyyy")</dd>
+
+                    <dt class="col-5 text-muted small">Time</dt>
+                    <dd class="col-7 small">@Model.OrderDate.ToLocalTime().ToString("hh:mm:ss tt")</dd>
+
+                    <dt class="col-5 text-muted small">Cashier</dt>
+                    <dd class="col-7 small">@(Model.CashierName ?? "—")</dd>
+
+                    <dt class="col-5 text-muted small">Items</dt>
+                    <dd class="col-7 small">@Model.OrderItems.Count item(s)</dd>
+                </dl>
+
+                <hr />
+
+                <!-- Bill summary -->
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Sub Total</span>
+                    <span class="fw-semibold">@Model.SubTotal.ToString("C")</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Cash Given</span>
+                    <span class="fw-semibold">@Model.CashGiven.ToString("C")</span>
+                </div>
+                <div class="d-flex justify-content-between p-2 rounded mt-2"
+                     style="background:var(--ra-table-head)">
+                    <span class="fw-bold text-success">Change</span>
+                    <span class="fw-bold text-success fs-5">@Model.Change.ToString("C")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Order items -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="px-4 pt-3 pb-2 fw-semibold border-bottom" style="color:var(--ra-text);">
+                    <i class="bi bi-bag me-2 text-primary"></i>Items Ordered
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Item</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Unit Price</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@item.ItemName</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">@item.Quantity</span>
+                                    </td>
+                                    <td class="text-end text-muted">@item.UnitPrice.ToString("C")</td>
+                                    <td class="text-end fw-semibold text-primary">@item.LineTotal.ToString("C")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Sub Total</td>
+                                <td class="text-end fw-bold text-primary">@Model.SubTotal.ToString("C")</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

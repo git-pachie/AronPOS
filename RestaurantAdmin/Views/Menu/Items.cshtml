@@ -1,0 +1,100 @@
+@model List<MenuItemViewModel>
+@{
+    ViewData["Title"] = "Menu Items";
+    var categories = ViewBag.Categories as List<RestaurantAdmin.Models.MenuCategory> ?? new();
+    int? selectedCategoryId = ViewBag.SelectedCategoryId;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-menu-button-wide me-2 text-success"></i>Menu Items</h4>
+    <a asp-action="CreateItem" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Add Item
+    </a>
+</div>
+
+<!-- Category filter -->
+<div class="mb-3 d-flex gap-2 flex-wrap">
+    <a asp-action="Items" class="btn btn-sm @(selectedCategoryId == null ? "btn-primary" : "btn-outline-secondary")">
+        All
+    </a>
+    @foreach (var cat in categories)
+    {
+        <a asp-action="Items" asp-route-categoryId="@cat.Id"
+           class="btn btn-sm @(selectedCategoryId == cat.Id ? "btn-primary" : "btn-outline-secondary")">
+            @cat.Name
+        </a>
+    }
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@item.Name</div>
+                                @if (!string.IsNullOrEmpty(item.Description))
+                                {
+                                    <div class="text-muted small">@(item.Description.Length > 60 ? item.Description[..60] + "…" : item.Description)</div>
+                                }
+                            </td>
+                            <td><span class="badge bg-light text-dark border">@item.CategoryName</span></td>
+                            <td class="fw-semibold text-success">@item.Price.ToString("C")</td>
+                            <td>
+                                @if (item.IsAvailable)
+                                {
+                                    <span class="badge bg-success">Available</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Unavailable</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a asp-action="UpdatePrice" asp-route-id="@item.Id"
+                                       class="btn btn-outline-success" title="Update Price">
+                                        <i class="bi bi-currency-dollar"></i>
+                                    </a>
+                                    <a asp-action="PriceHistory" asp-route-id="@item.Id"
+                                       class="btn btn-outline-info" title="Price History">
+                                        <i class="bi bi-clock-history"></i>
+                                    </a>
+                                    <a asp-action="EditItem" asp-route-id="@item.Id"
+                                       class="btn btn-outline-primary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form asp-action="DeleteItem" asp-route-id="@item.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger" title="Delete"
+                                                onclick="return confirm('Delete @item.Name?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No menu items found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

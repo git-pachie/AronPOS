@@ -1,0 +1,252 @@
+@using RestaurantAdmin.Models
+@{
+    ViewData["Title"] = "Dashboard";
+    var recentOrders = ViewBag.RecentOrders as List<Order> ?? new List<Order>();
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0"><i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard</h4>
+        <span class="text-muted small">Overview of your restaurant system</span>
+    </div>
+    <div class="text-end">
+        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+            <i class="bi bi-circle-fill me-1" style="font-size:0.5rem;vertical-align:middle;"></i>
+            Logged in as <strong>@User.Identity?.Name</strong>
+        </span>
+    </div>
+</div>
+
+<!-- Stat Cards Row 1: Users & Menu -->
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="rounded-3 bg-primary bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width:52px;height:52px;">
+                        <i class="bi bi-people fs-4 text-primary"></i>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary small">Users</span>
+                </div>
+                <div class="fs-1 fw-bold lh-1 mb-1">@ViewBag.TotalUsers</div>
+                <div class="text-muted small">Total Users</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="rounded-3 bg-danger bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width:52px;height:52px;">
+                        <i class="bi bi-person-slash fs-4 text-danger"></i>
+                    </div>
+                    <span class="badge bg-danger bg-opacity-10 text-danger small">Accounts</span>
+                </div>
+                <div class="fs-1 fw-bold lh-1 mb-1">@ViewBag.SuspendedUsers</div>
+                <div class="text-muted small">Suspended Users</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="rounded-3 bg-success bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width:52px;height:52px;">
+                        <i class="bi bi-menu-button-wide fs-4 text-success"></i>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success small">Menu</span>
+                </div>
+                <div class="fs-1 fw-bold lh-1 mb-1">@ViewBag.TotalMenuItems</div>
+                <div class="text-muted small">Total Menu Items</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="rounded-3 bg-warning bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width:52px;height:52px;">
+                        <i class="bi bi-tags fs-4 text-warning"></i>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-10 text-warning small">Categories</span>
+                </div>
+                <div class="fs-1 fw-bold lh-1 mb-1">@ViewBag.TotalCategories</div>
+                <div class="text-muted small">Menu Categories</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stat Cards Row 2: Orders -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="rounded-3 bg-info bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width:52px;height:52px;">
+                        <i class="bi bi-receipt fs-4 text-info"></i>
+                    </div>
+                    <span class="badge bg-info bg-opacity-10 text-info small">POS</span>
+                </div>
+                <div class="fs-1 fw-bold lh-1 mb-1">@ViewBag.TotalOrders</div>
+                <div class="text-muted small">Total Orders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="rounded-3 bg-success bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width:52px;height:52px;">
+                        <i class="bi bi-cash-stack fs-4 text-success"></i>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success small">Revenue</span>
+                </div>
+                <div class="fs-2 fw-bold lh-1 mb-1">@((ViewBag.TotalRevenue as decimal? ?? 0m).ToString("C"))</div>
+                <div class="text-muted small">Total Revenue</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="rounded-3 bg-primary bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width:52px;height:52px;">
+                        <i class="bi bi-calendar-day fs-4 text-primary"></i>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary small">Today</span>
+                </div>
+                <div class="fs-1 fw-bold lh-1 mb-1">@ViewBag.TodayOrders</div>
+                <div class="text-muted small">Today's Orders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="rounded-3 bg-warning bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width:52px;height:52px;">
+                        <i class="bi bi-graph-up fs-4 text-warning"></i>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-10 text-warning small">Today</span>
+                </div>
+                <div class="fs-2 fw-bold lh-1 mb-1">@((ViewBag.TodayRevenue as decimal? ?? 0m).ToString("C"))</div>
+                <div class="text-muted small">Today's Revenue</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom row: Quick access + Recent orders -->
+<div class="row g-3">
+
+    <!-- Quick access -->
+    <div class="col-12 col-lg-5">
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="rounded-3 bg-primary bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+                                <i class="bi bi-people fs-5 text-primary"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">User Management</div>
+                                <div class="text-muted small">Manage accounts and permissions</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-controller="Users" asp-action="Create" class="btn btn-primary btn-sm">
+                                <i class="bi bi-person-plus me-1"></i>New User
+                            </a>
+                            <a asp-controller="Users" asp-action="Index" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-list me-1"></i>View All
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="rounded-3 bg-success bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+                                <i class="bi bi-menu-button-wide fs-5 text-success"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">Menu Management</div>
+                                <div class="text-muted small">Items, categories and prices</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-controller="Menu" asp-action="CreateItem" class="btn btn-success btn-sm">
+                                <i class="bi bi-plus-lg me-1"></i>New Item
+                            </a>
+                            <a asp-controller="Menu" asp-action="Items" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-list me-1"></i>View All
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent orders -->
+    <div class="col-12 col-lg-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pt-3 pb-0 px-4 d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-receipt me-2 text-primary"></i>Recent Orders</span>
+                <a asp-controller="Orders" asp-action="Index" class="btn btn-outline-primary btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order #</th>
+                                <th>Time</th>
+                                <th>Items</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in recentOrders)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id"
+                                           class="text-primary fw-semibold text-decoration-none small">
+                                            @order.OrderNumber
+                                        </a>
+                                    </td>
+                                    <td class="text-muted small">
+                                        @order.OrderDate.ToLocalTime().ToString("hh:mm tt")
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@order.OrderItems.Count</span>
+                                    </td>
+                                    <td class="text-end fw-semibold text-success">
+                                        @order.SubTotal.ToString("C")
+                                    </td>
+                                </tr>
+                            }
+                            @if (!recentOrders.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4 small">
+                                        No orders yet. Submit from the Android POS app.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
