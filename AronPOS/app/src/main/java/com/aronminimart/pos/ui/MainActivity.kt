@@ -6,13 +6,13 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import com.aronminimart.pos.R
 import com.aronminimart.pos.data.model.MenuItem as PosMenuItem
+import com.aronminimart.pos.data.session.SessionManager
 import com.aronminimart.pos.databinding.ActivityMainBinding
 import com.aronminimart.pos.ui.adapter.CartAdapter
 import com.aronminimart.pos.ui.adapter.MenuItemAdapter
@@ -22,12 +22,22 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
+    private lateinit var session: SessionManager
 
     private lateinit var menuAdapter: MenuItemAdapter
     private lateinit var cartAdapter: CartAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        session = SessionManager(this)
+
+        // Guard: if not logged in, redirect to login
+        if (!session.isLoggedIn()) {
+            goToLogin()
+            return
+        }
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -39,9 +49,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupAdapters() {
         menuAdapter = MenuItemAdapter(
-            onAdd = { item -> viewModel.addToCart(item); menuAdapter.refreshQuantities() },
+            onAdd    = { item -> viewModel.addToCart(item); menuAdapter.refreshQuantities() },
             onRemove = { item -> viewModel.removeFromCart(item); menuAdapter.refreshQuantities() },
-            getQty = { id -> viewModel.getCartQuantity(id) }
+            getQty   = { id -> viewModel.getCartQuantity(id) }
         )
         binding.rvMenuItems.apply {
             layoutManager = GridLayoutManager(this@MainActivity, 3)
@@ -64,10 +74,13 @@ class MainActivity : AppCompatActivity() {
         viewModel.storeName.observe(this) { name ->
             binding.tvStoreName.text = name
             supportActionBar?.title = name
+            // Show cashier name in subtitle
+            val cashier = session.getFullName().ifEmpty { session.getUsername() }
+            supportActionBar?.subtitle = "Cashier: $cashier"
         }
 
         viewModel.isLoading.observe(this) { loading ->
-            binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
+            binding.progressBar.visibility  = if (loading) View.VISIBLE else View.GONE
             binding.layoutContent.visibility = if (loading) View.GONE else View.VISIBLE
         }
 
@@ -129,17 +142,17 @@ class MainActivity : AppCompatActivity() {
         viewModel.orderResult.observe(this) { order ->
             if (order != null) {
                 val intent = Intent(this, ReceiptActivity::class.java).apply {
-                    putExtra("order_number", order.orderNumber)
-                    putExtra("sub_total", order.subTotal)
-                    putExtra("cash_given", order.cashGiven)
-                    putExtra("change", order.change)
-                    putExtra("order_date", order.orderDate)
-                    putExtra("items_count", order.items.size)
-                    // Pass items as arrays
-                    putExtra("item_names", order.items.map { it.itemName }.toTypedArray())
-                    putExtra("item_qtys", order.items.map { it.quantity }.toIntArray())
-                    putExtra("item_prices", order.items.map { it.unitPrice }.toDoubleArray())
-                    putExtra("item_totals", order.items.map { it.lineTotal }.toDoubleArray())
+                    putExtra("order_number",  order.orderNumber)
+                    putExtra("sub_total",     order.subTotal)
+                    putExtra("cash_given",    order.cashGiven)
+                    putExtra("change",        order.change)
+                    putExtra("order_date",    order.orderDate)
+                    putExtra("items_count",   order.items.size)
+                    putExtra("item_names",    order.items.map { it.itemName }.toTypedArray())
+                    putExtra("item_qtys",     order.items.map { it.quantity }.toIntArray())
+                    putExtra("item_prices",   order.items.map { it.unitPrice }.toDoubleArray())
+                    putExtra("item_totals",   order.items.map { it.lineTotal }.toDoubleArray())
+                    putExtra("cashier_name",  session.getFullName().ifEmpty { session.getUsername() })
                 }
                 startActivity(intent)
                 viewModel.clearOrderResult()
@@ -206,7 +219,31 @@ class MainActivity : AppCompatActivity() {
                 viewModel.loadData()
                 true
             }
+            R.id.action_logout -> {
+                confirmLogout()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun confirmLogout() {
+        AlertDialog.Builder(this)
+            .setTitle("Logout")
+            .setMessage("Are you sure you want to logout?")
+            .setPositiveButton("Logout") { _, _ ->
+                session.clearSession()
+                viewModel.clearCart()
+                goToLogin()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun goToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }

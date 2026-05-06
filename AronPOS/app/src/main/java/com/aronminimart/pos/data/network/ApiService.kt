@@ -20,4 +20,7 @@ interface ApiService {
 
     @GET("api/store/health")
     suspend fun health(): Response<Any>
+
+    @POST("api/auth/login")
+    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 }

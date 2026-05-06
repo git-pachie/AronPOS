@@ -60,6 +60,22 @@ data class StoreInfo(
     val version: String
 )
 
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+data class LoginRequest(
+    val username: String,
+    val password: String
+)
+
+data class LoginResponse(
+    val userId: String,
+    val username: String,
+    val email: String,
+    val fullName: String,
+    val roles: List<String>,
+    val message: String
+)
+
 // ── Cart ─────────────────────────────────────────────────────────────────────
 
 data class CartItem(
