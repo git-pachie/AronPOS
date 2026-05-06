@@ -45,9 +45,6 @@ public class MenuItemViewModel
     public string? CategoryName { get; set; }
     public string? ImagePath { get; set; }
 
-    [Display(Name = "Product Image")]
-    public IFormFile? ImageFile { get; set; }
-
     public List<MenuCategoryViewModel> Categories { get; set; } = new();
 }
 

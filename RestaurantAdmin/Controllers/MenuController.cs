@@ -14,11 +14,16 @@ public class MenuController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IWebHostEnvironment _env;
 
-    public MenuController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    public MenuController(
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
+        IWebHostEnvironment env)
     {
         _context = context;
         _userManager = userManager;
+        _env = env;
     }
 
     // ─── Categories ──────────────────────────────────────────────────────────
@@ -131,14 +136,14 @@ public class MenuController : Controller
             .ThenBy(m => m.Name)
             .Select(m => new MenuItemViewModel
             {
-                Id = m.Id,
-                Name = m.Name,
-                Description = m.Description,
-                Price = m.Price,
-                IsAvailable = m.IsAvailable,
+                Id             = m.Id,
+                Name           = m.Name,
+                Description    = m.Description,
+                Price          = m.Price,
+                IsAvailable    = m.IsAvailable,
                 MenuCategoryId = m.MenuCategoryId,
-                CategoryName = m.MenuCategory.Name,
-                ImagePath = m.ImagePath
+                CategoryName   = m.MenuCategory.Name,
+                ImagePath      = m.ImagePath
             })
             .ToListAsync();
 
@@ -151,18 +156,19 @@ public class MenuController : Controller
         return View(items);
     }
 
+    // GET: Menu/CreateItem
     public async Task<IActionResult> CreateItem()
     {
-        var vm = new MenuItemViewModel
+        return View(new MenuItemViewModel
         {
             Categories = await GetCategoryViewModels()
-        };
-        return View(vm);
+        });
     }
 
+    // POST: Menu/CreateItem
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateItem(MenuItemViewModel model)
+    public async Task<IActionResult> CreateItem(MenuItemViewModel model, IFormFile? imageFile)
     {
         ModelState.Remove("ImageFile");
 
@@ -173,25 +179,27 @@ public class MenuController : Controller
         }
 
         string? imagePath = null;
-        try
+
+        if (imageFile != null && imageFile.Length > 0)
         {
-            imagePath = await ImageHelper.SaveProductImageAsync(model.ImageFile);
-        }
-        catch (ArgumentException ex)
-        {
-            ModelState.AddModelError("ImageFile", ex.Message);
-            model.Categories = await GetCategoryViewModels();
-            return View(model);
+            var saveResult = await SaveImageFile(imageFile);
+            if (saveResult.Error != null)
+            {
+                ModelState.AddModelError("ImageFile", saveResult.Error);
+                model.Categories = await GetCategoryViewModels();
+                return View(model);
+            }
+            imagePath = saveResult.Path;
         }
 
         _context.MenuItems.Add(new MenuItem
         {
-            Name = model.Name,
-            Description = model.Description,
-            Price = model.Price,
-            IsAvailable = model.IsAvailable,
+            Name           = model.Name,
+            Description    = model.Description,
+            Price          = model.Price,
+            IsAvailable    = model.IsAvailable,
             MenuCategoryId = model.MenuCategoryId,
-            ImagePath = imagePath
+            ImagePath      = imagePath
         });
 
         await _context.SaveChangesAsync();
@@ -199,6 +207,7 @@ public class MenuController : Controller
         return RedirectToAction(nameof(Items));
     }
 
+    // GET: Menu/EditItem/id
     public async Task<IActionResult> EditItem(int id)
     {
         var item = await _context.MenuItems.FindAsync(id);
@@ -206,20 +215,21 @@ public class MenuController : Controller
 
         return View(new MenuItemViewModel
         {
-            Id = item.Id,
-            Name = item.Name,
-            Description = item.Description,
-            Price = item.Price,
-            IsAvailable = item.IsAvailable,
+            Id             = item.Id,
+            Name           = item.Name,
+            Description    = item.Description,
+            Price          = item.Price,
+            IsAvailable    = item.IsAvailable,
             MenuCategoryId = item.MenuCategoryId,
-            ImagePath = item.ImagePath,
-            Categories = await GetCategoryViewModels()
+            ImagePath      = item.ImagePath,
+            Categories     = await GetCategoryViewModels()
         });
     }
 
+    // POST: Menu/EditItem
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditItem(MenuItemViewModel model)
+    public async Task<IActionResult> EditItem(MenuItemViewModel model, IFormFile? imageFile)
     {
         ModelState.Remove("ImageFile");
 
@@ -232,25 +242,23 @@ public class MenuController : Controller
         var item = await _context.MenuItems.FindAsync(model.Id);
         if (item == null) return NotFound();
 
-        item.Name = model.Name;
-        item.Description = model.Description;
-        item.IsAvailable = model.IsAvailable;
+        item.Name           = model.Name;
+        item.Description    = model.Description;
+        item.IsAvailable    = model.IsAvailable;
         item.MenuCategoryId = model.MenuCategoryId;
-        item.UpdatedAt = DateTime.UtcNow;
+        item.UpdatedAt      = DateTime.UtcNow;
 
-        // Handle image upload
-        if (model.ImageFile != null && model.ImageFile.Length > 0)
+        if (imageFile != null && imageFile.Length > 0)
         {
-            try
+            var saveResult = await SaveImageFile(imageFile, item.ImagePath);
+            if (saveResult.Error != null)
             {
-                item.ImagePath = await ImageHelper.SaveProductImageAsync(model.ImageFile, item.ImagePath);
-            }
-            catch (ArgumentException ex)
-            {
-                ModelState.AddModelError("ImageFile", ex.Message);
+                ModelState.AddModelError("ImageFile", saveResult.Error);
                 model.Categories = await GetCategoryViewModels();
+                model.ImagePath  = item.ImagePath;
                 return View(model);
             }
+            item.ImagePath = saveResult.Path;
         }
 
         await _context.SaveChangesAsync();
@@ -266,7 +274,7 @@ public class MenuController : Controller
         var item = await _context.MenuItems.FindAsync(id);
         if (item == null) return NotFound();
 
-        ImageHelper.DeleteImage(item.ImagePath);
+        DeleteImageFile(item.ImagePath);
         item.ImagePath = null;
         item.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
@@ -283,10 +291,10 @@ public class MenuController : Controller
 
         return View(new UpdatePriceViewModel
         {
-            MenuItemId = item.Id,
-            ItemName = item.Name,
+            MenuItemId   = item.Id,
+            ItemName     = item.Name,
             CurrentPrice = item.Price,
-            NewPrice = item.Price
+            NewPrice     = item.Price
         });
     }
 
@@ -304,7 +312,7 @@ public class MenuController : Controller
         {
             ModelState.AddModelError("NewPrice", "New price must be different from the current price.");
             model.CurrentPrice = item.Price;
-            model.ItemName = item.Name;
+            model.ItemName     = item.Name;
             return View(model);
         }
 
@@ -312,13 +320,13 @@ public class MenuController : Controller
 
         _context.MenuItemPriceHistories.Add(new MenuItemPriceHistory
         {
-            MenuItemId = item.Id,
-            OldPrice = item.Price,
-            NewPrice = model.NewPrice,
+            MenuItemId      = item.Id,
+            OldPrice        = item.Price,
+            NewPrice        = model.NewPrice,
             ChangedByUserId = currentUserId
         });
 
-        item.Price = model.NewPrice;
+        item.Price     = model.NewPrice;
         item.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
@@ -336,20 +344,20 @@ public class MenuController : Controller
         if (item == null) return NotFound();
 
         var userIds = item.PriceHistory.Select(h => h.ChangedByUserId).Distinct().ToList();
-        var users = _userManager.Users
+        var users   = _userManager.Users
             .Where(u => userIds.Contains(u.Id))
             .ToDictionary(u => u.Id, u => u.FullName);
 
         var vm = new PriceHistoryViewModel
         {
-            ItemName = item.Name,
+            ItemName     = item.Name,
             CurrentPrice = item.Price,
-            History = item.PriceHistory
+            History      = item.PriceHistory
                 .OrderByDescending(h => h.ChangedAt)
                 .Select(h => new PriceHistoryEntry
                 {
-                    OldPrice = h.OldPrice,
-                    NewPrice = h.NewPrice,
+                    OldPrice  = h.OldPrice,
+                    NewPrice  = h.NewPrice,
                     ChangedAt = h.ChangedAt,
                     ChangedBy = users.TryGetValue(h.ChangedByUserId, out var name) ? name : "Unknown"
                 })
@@ -359,6 +367,7 @@ public class MenuController : Controller
         return View(vm);
     }
 
+    // POST: Menu/DeleteItem/id
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteItem(int id)
@@ -366,11 +375,50 @@ public class MenuController : Controller
         var item = await _context.MenuItems.FindAsync(id);
         if (item == null) return NotFound();
 
-        ImageHelper.DeleteImage(item.ImagePath);
+        DeleteImageFile(item.ImagePath);
         _context.MenuItems.Remove(item);
         await _context.SaveChangesAsync();
         TempData["Success"] = $"Menu item '{item.Name}' deleted.";
         return RedirectToAction(nameof(Items));
+    }
+
+    // ─── Private helpers ──────────────────────────────────────────────────────
+
+    private async Task<(string? Path, string? Error)> SaveImageFile(
+        IFormFile file, string? oldPath = null)
+    {
+        var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+        if (!allowed.Contains(ext))
+            return (null, "Only JPG, PNG, GIF or WEBP images are allowed.");
+
+        if (file.Length > 5 * 1024 * 1024)
+            return (null, "Image must be smaller than 5 MB.");
+
+        // Delete old image first
+        DeleteImageFile(oldPath);
+
+        // Ensure upload directory exists
+        var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "products");
+        Directory.CreateDirectory(uploadsDir);
+
+        var fileName = $"product_{Guid.NewGuid():N}{ext}";
+        var fullPath = Path.Combine(uploadsDir, fileName);
+
+        using var stream = new FileStream(fullPath, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        return ($"/uploads/products/{fileName}", null);
+    }
+
+    private void DeleteImageFile(string? relativePath)
+    {
+        if (string.IsNullOrEmpty(relativePath)) return;
+        var full = Path.Combine(_env.WebRootPath,
+            relativePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+        if (System.IO.File.Exists(full))
+            System.IO.File.Delete(full);
     }
 
     private async Task<List<MenuCategoryViewModel>> GetCategoryViewModels()
