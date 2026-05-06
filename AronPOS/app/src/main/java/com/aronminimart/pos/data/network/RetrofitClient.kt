@@ -14,7 +14,7 @@ object RetrofitClient {
 
     // Emulator → use 10.0.2.2 (maps to your PC localhost)
     // Real device → use your PC's LAN IP e.g. http://192.168.1.5:5000/
-    private const val DEFAULT_BASE_URL = "http://10.0.2.2:5000/"
+    private const val DEFAULT_BASE_URL = "http://192.168.254.102:5000/"
 
     private var baseUrl: String = DEFAULT_BASE_URL
     private var instance: ApiService? = null
