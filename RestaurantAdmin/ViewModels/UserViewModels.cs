@@ -99,3 +99,86 @@ public class AssignRolesViewModel
     public string FullName { get; set; } = string.Empty;
     public List<RoleCheckboxItem> Roles { get; set; } = new();
 }
+
+public class UserDetailsViewModel
+{
+    public string Id { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string? PhoneNumber { get; set; }
+    public bool IsSuspended { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? SuspendedAt { get; set; }
+    public string? SuspendReason { get; set; }
+    public bool EmailConfirmed { get; set; }
+    public bool TwoFactorEnabled { get; set; }
+    public int AccessFailedCount { get; set; }
+    public DateTimeOffset? LockoutEnd { get; set; }
+    public List<string> Roles { get; set; } = new();
+
+    // Profile fields
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? Address { get; set; }
+    public string? City { get; set; }
+    public string? Country { get; set; }
+    public string? ProfileNotes { get; set; }
+    public DateTime? DateOfBirth { get; set; }
+    public string? Gender { get; set; }
+    public string? Department { get; set; }
+    public string? Position { get; set; }
+    public DateTime? LastLoginAt { get; set; }
+}
+
+public class EditProfileViewModel
+{
+    public string Id { get; set; } = string.Empty;
+
+    [MaxLength(100)]
+    [Display(Name = "First Name")]
+    public string? FirstName { get; set; }
+
+    [MaxLength(100)]
+    [Display(Name = "Last Name")]
+    public string? LastName { get; set; }
+
+    [Required, MaxLength(150)]
+    [Display(Name = "Full Name")]
+    public string FullName { get; set; } = string.Empty;
+
+    [Phone]
+    [Display(Name = "Phone Number")]
+    public string? PhoneNumber { get; set; }
+
+    [MaxLength(20)]
+    [Display(Name = "Gender")]
+    public string? Gender { get; set; }
+
+    [Display(Name = "Date of Birth")]
+    [DataType(DataType.Date)]
+    public DateTime? DateOfBirth { get; set; }
+
+    [MaxLength(200)]
+    [Display(Name = "Address")]
+    public string? Address { get; set; }
+
+    [MaxLength(100)]
+    [Display(Name = "City")]
+    public string? City { get; set; }
+
+    [MaxLength(100)]
+    [Display(Name = "Country")]
+    public string? Country { get; set; }
+
+    [MaxLength(100)]
+    [Display(Name = "Department")]
+    public string? Department { get; set; }
+
+    [MaxLength(100)]
+    [Display(Name = "Position / Job Title")]
+    public string? Position { get; set; }
+
+    [MaxLength(1000)]
+    [Display(Name = "Notes")]
+    public string? ProfileNotes { get; set; }
+}

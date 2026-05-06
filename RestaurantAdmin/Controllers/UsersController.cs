@@ -44,6 +44,108 @@ public class UsersController : Controller
         return View(viewModels);
     }
 
+    // GET: Users/Details/id
+    public async Task<IActionResult> Details(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var vm = new UserDetailsViewModel
+        {
+            Id               = user.Id,
+            FullName         = user.FullName,
+            Email            = user.Email ?? string.Empty,
+            PhoneNumber      = user.PhoneNumber,
+            IsSuspended      = user.IsSuspended,
+            CreatedAt        = user.CreatedAt,
+            SuspendedAt      = user.SuspendedAt,
+            SuspendReason    = user.SuspendReason,
+            EmailConfirmed   = user.EmailConfirmed,
+            TwoFactorEnabled = user.TwoFactorEnabled,
+            AccessFailedCount = user.AccessFailedCount,
+            LockoutEnd       = user.LockoutEnd,
+            Roles            = roles.ToList(),
+            // Profile
+            FirstName        = user.FirstName,
+            LastName         = user.LastName,
+            Address          = user.Address,
+            City             = user.City,
+            Country          = user.Country,
+            ProfileNotes     = user.ProfileNotes,
+            DateOfBirth      = user.DateOfBirth,
+            Gender           = user.Gender,
+            Department       = user.Department,
+            Position         = user.Position,
+            LastLoginAt      = user.LastLoginAt
+        };
+
+        return View(vm);
+    }
+
+    // GET: Users/EditProfile/id
+    public async Task<IActionResult> EditProfile(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        var vm = new EditProfileViewModel
+        {
+            Id          = user.Id,
+            FullName    = user.FullName,
+            FirstName   = user.FirstName,
+            LastName    = user.LastName,
+            PhoneNumber = user.PhoneNumber,
+            Gender      = user.Gender,
+            DateOfBirth = user.DateOfBirth,
+            Address     = user.Address,
+            City        = user.City,
+            Country     = user.Country,
+            Department  = user.Department,
+            Position    = user.Position,
+            ProfileNotes = user.ProfileNotes
+        };
+
+        return View(vm);
+    }
+
+    // POST: Users/EditProfile
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditProfile(EditProfileViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = await _userManager.FindByIdAsync(model.Id);
+        if (user == null) return NotFound();
+
+        user.FullName     = model.FullName;
+        user.FirstName    = model.FirstName;
+        user.LastName     = model.LastName;
+        user.PhoneNumber  = model.PhoneNumber;
+        user.Gender       = model.Gender;
+        user.DateOfBirth  = model.DateOfBirth;
+        user.Address      = model.Address;
+        user.City         = model.City;
+        user.Country      = model.Country;
+        user.Department   = model.Department;
+        user.Position     = model.Position;
+        user.ProfileNotes = model.ProfileNotes;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
+            return View(model);
+        }
+
+        TempData["Success"] = $"Profile for '{user.FullName}' updated successfully.";
+        return RedirectToAction(nameof(Details), new { id = model.Id });
+    }
+
     // GET: Users/Create
     public async Task<IActionResult> Create()
     {

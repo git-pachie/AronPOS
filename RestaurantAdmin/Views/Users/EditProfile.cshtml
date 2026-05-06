@@ -1,0 +1,151 @@
+@model EditProfileViewModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="d-flex align-items-center mb-4 gap-2">
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h4 class="fw-bold mb-0"><i class="bi bi-person-gear me-2 text-primary"></i>Edit Profile</h4>
+</div>
+
+<form asp-action="EditProfile" method="post">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+    <div class="row g-4">
+
+        <!-- Personal Information -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-4 text-uppercase small text-muted">
+                        <i class="bi bi-person me-2"></i>Personal Information
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="FirstName" class="form-label fw-semibold small"></label>
+                            <input asp-for="FirstName" class="form-control" placeholder="John" />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="LastName" class="form-label fw-semibold small"></label>
+                            <input asp-for="LastName" class="form-control" placeholder="Doe" />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="FullName" class="form-label fw-semibold small"></label>
+                            <input asp-for="FullName" class="form-control" placeholder="John Doe" />
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="PhoneNumber" class="form-label fw-semibold small"></label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="+1 234 567 8900" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Gender" class="form-label fw-semibold small"></label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="">— Select —</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="DateOfBirth" class="form-label fw-semibold small"></label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Work Information -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-4 text-uppercase small text-muted">
+                        <i class="bi bi-briefcase me-2"></i>Work Information
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Department" class="form-label fw-semibold small"></label>
+                            <input asp-for="Department" class="form-control" placeholder="e.g. Operations" />
+                            <span asp-validation-for="Department" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Position" class="form-label fw-semibold small"></label>
+                            <input asp-for="Position" class="form-control" placeholder="e.g. Cashier" />
+                            <span asp-validation-for="Position" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-4 text-uppercase small text-muted">
+                        <i class="bi bi-geo-alt me-2"></i>Address
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="Address" class="form-label fw-semibold small"></label>
+                            <input asp-for="Address" class="form-control" placeholder="123 Main Street" />
+                            <span asp-validation-for="Address" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="City" class="form-label fw-semibold small"></label>
+                            <input asp-for="City" class="form-control" placeholder="Manila" />
+                            <span asp-validation-for="City" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Country" class="form-label fw-semibold small"></label>
+                            <input asp-for="Country" class="form-control" placeholder="Philippines" />
+                            <span asp-validation-for="Country" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-4 text-uppercase small text-muted">
+                        <i class="bi bi-sticky me-2"></i>Notes
+                    </h6>
+                    <textarea asp-for="ProfileNotes" class="form-control" rows="4"
+                              placeholder="Any additional notes about this user..."></textarea>
+                    <span asp-validation-for="ProfileNotes" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="col-12">
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-check-lg me-1"></i>Save Profile
+                </button>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScripts")
+}
