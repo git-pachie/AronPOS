@@ -9,7 +9,6 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import com.aronminimart.pos.R
-import com.aronminimart.pos.data.model.MenuItem as PosMenuItem
 import com.aronminimart.pos.data.session.SessionManager
 import com.aronminimart.pos.databinding.ActivityMainBinding
 import com.aronminimart.pos.ui.adapter.CartAdapter
@@ -206,29 +205,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
         binding.btnUserAvatar.setOnClickListener { confirmLogout() }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_settings -> {
-                startActivity(Intent(this, SettingsActivity::class.java))
-                true
-            }
-            R.id.action_refresh -> {
-                viewModel.loadData()
-                true
-            }
-            R.id.action_logout -> {
-                confirmLogout()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 
     private fun confirmLogout() {
