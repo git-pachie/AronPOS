@@ -52,29 +52,51 @@ class MainActivity : AppCompatActivity() {
     // ── Header avatar setup ───────────────────────────────────────────────────
 
     private fun setupHeaderAvatar() {
-        val fullName = session.getFullName().ifEmpty { session.getUsername() }
+        val fullName  = session.getFullName().ifEmpty { session.getUsername() }
         val imagePath = session.getProfileImagePath()
 
+        android.util.Log.d("POS_PROFILE", "setupHeaderAvatar: imagePath=$imagePath")
+
         if (!imagePath.isNullOrEmpty()) {
-            val baseUrl = RetrofitClient.getBaseUrl().trimEnd('/')
-            val fullUrl = if (imagePath.startsWith("http")) imagePath else "$baseUrl$imagePath"
+            // Use getCurrentUrl(context) to ensure we have the saved URL, not the default
+            val baseUrl = RetrofitClient.getCurrentUrl(this).trimEnd('/')
+            val fullUrl = if (imagePath.startsWith("http")) imagePath
+                          else "$baseUrl$imagePath"
+
+            android.util.Log.i("POS_PROFILE", "Loading avatar from: $fullUrl")
 
             Glide.with(this)
                 .load(fullUrl)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)   // disable cache for debugging
+                .skipMemoryCache(true)
                 .circleCrop()
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_menu_report_image)
+                .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                    override fun onLoadFailed(e: com.bumptech.glide.load.engine.GlideException?,
+                        model: Any?, target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                        isFirstResource: Boolean): Boolean {
+                        android.util.Log.e("POS_PROFILE", "Avatar load FAILED: $fullUrl — ${e?.message}")
+                        e?.logRootCauses("POS_PROFILE")
+                        return false
+                    }
+                    override fun onResourceReady(resource: android.graphics.drawable.Drawable?,
+                        model: Any?, target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                        dataSource: com.bumptech.glide.load.DataSource?, isFirstResource: Boolean): Boolean {
+                        android.util.Log.i("POS_PROFILE", "Avatar load SUCCESS: $fullUrl")
+                        return false
+                    }
+                })
                 .into(binding.ivAvatarPhoto)
 
-            binding.ivAvatarPhoto.visibility  = View.VISIBLE
+            binding.ivAvatarPhoto.visibility    = View.VISIBLE
             binding.tvAvatarInitials.visibility = View.GONE
         } else {
-            // Show initials
+            android.util.Log.d("POS_PROFILE", "No profile image path — showing initials")
             val initials = fullName
-                .split(" ")
-                .filter { it.isNotEmpty() }
-                .take(2)
+                .split(" ").filter { it.isNotEmpty() }.take(2)
                 .joinToString("") { it[0].uppercaseChar().toString() }
-            binding.tvAvatarInitials.text = initials.ifEmpty { "?" }
+            binding.tvAvatarInitials.text       = initials.ifEmpty { "?" }
             binding.tvAvatarInitials.visibility = View.VISIBLE
             binding.ivAvatarPhoto.visibility    = View.GONE
         }
@@ -116,16 +138,21 @@ class MainActivity : AppCompatActivity() {
 
         // Load profile photo or show initials
         if (!imagePath.isNullOrEmpty()) {
-            val baseUrl = RetrofitClient.getBaseUrl().trimEnd('/')
+            val baseUrl = RetrofitClient.getCurrentUrl(this).trimEnd('/')
             val fullUrl = if (imagePath.startsWith("http")) imagePath else "$baseUrl$imagePath"
+
+            android.util.Log.i("POS_PROFILE", "Loading dialog photo from: $fullUrl")
 
             Glide.with(this)
                 .load(fullUrl)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
                 .circleCrop()
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_menu_report_image)
                 .into(dialogBinding.ivDialogPhoto)
 
-            dialogBinding.ivDialogPhoto.visibility   = View.VISIBLE
+            dialogBinding.ivDialogPhoto.visibility    = View.VISIBLE
             dialogBinding.tvDialogInitials.visibility = View.GONE
         } else {
             val initials = fullName

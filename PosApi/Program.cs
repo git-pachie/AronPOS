@@ -66,20 +66,17 @@ app.UseSwaggerUI(options =>
 // Removed UseHttpsRedirection — Android emulator uses plain HTTP on port 5000
 app.UseAuthorization();
 
-// ─── Serve product images from the admin app's wwwroot/uploads ────────────────
+// ─── Serve product/profile images from the admin app's wwwroot/uploads ───────
 var adminAppPath = builder.Configuration["AdminAppPath"];
 if (!string.IsNullOrEmpty(adminAppPath))
 {
-    // Resolve relative path from PosApi project directory
+    // Try resolving from BaseDirectory first (published), then CWD (VS run)
     var uploadsPath = Path.GetFullPath(
         Path.Combine(AppContext.BaseDirectory, adminAppPath, "uploads"));
 
     if (!Directory.Exists(uploadsPath))
-    {
-        // Try relative to current working directory (when running from VS)
         uploadsPath = Path.GetFullPath(
             Path.Combine(Directory.GetCurrentDirectory(), adminAppPath, "uploads"));
-    }
 
     if (Directory.Exists(uploadsPath))
     {
@@ -92,7 +89,7 @@ if (!string.IsNullOrEmpty(adminAppPath))
     }
     else
     {
-        app.Logger.LogWarning("Uploads folder not found at: {Path}. Images will not be served.", uploadsPath);
+        app.Logger.LogWarning("Uploads folder not found at: {Path}", uploadsPath);
     }
 }
 
