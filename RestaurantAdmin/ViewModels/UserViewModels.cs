@@ -128,6 +128,7 @@ public class UserDetailsViewModel
     public string? Department { get; set; }
     public string? Position { get; set; }
     public DateTime? LastLoginAt { get; set; }
+    public string? ProfileImagePath { get; set; }
 }
 
 public class EditProfileViewModel
@@ -181,4 +182,11 @@ public class EditProfileViewModel
     [MaxLength(1000)]
     [Display(Name = "Notes")]
     public string? ProfileNotes { get; set; }
+
+    // Current image path (for display)
+    public string? ProfileImagePath { get; set; }
+
+    // New image upload
+    [Display(Name = "Profile Photo")]
+    public IFormFile? ProfileImage { get; set; }
 }

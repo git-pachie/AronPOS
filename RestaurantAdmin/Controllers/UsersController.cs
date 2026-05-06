@@ -78,7 +78,8 @@ public class UsersController : Controller
             Gender           = user.Gender,
             Department       = user.Department,
             Position         = user.Position,
-            LastLoginAt      = user.LastLoginAt
+            LastLoginAt      = user.LastLoginAt,
+            ProfileImagePath = user.ProfileImagePath
         };
 
         return View(vm);
@@ -92,19 +93,20 @@ public class UsersController : Controller
 
         var vm = new EditProfileViewModel
         {
-            Id          = user.Id,
-            FullName    = user.FullName,
-            FirstName   = user.FirstName,
-            LastName    = user.LastName,
-            PhoneNumber = user.PhoneNumber,
-            Gender      = user.Gender,
-            DateOfBirth = user.DateOfBirth,
-            Address     = user.Address,
-            City        = user.City,
-            Country     = user.Country,
-            Department  = user.Department,
-            Position    = user.Position,
-            ProfileNotes = user.ProfileNotes
+            Id               = user.Id,
+            FullName         = user.FullName,
+            FirstName        = user.FirstName,
+            LastName         = user.LastName,
+            PhoneNumber      = user.PhoneNumber,
+            Gender           = user.Gender,
+            DateOfBirth      = user.DateOfBirth,
+            Address          = user.Address,
+            City             = user.City,
+            Country          = user.Country,
+            Department       = user.Department,
+            Position         = user.Position,
+            ProfileNotes     = user.ProfileNotes,
+            ProfileImagePath = user.ProfileImagePath
         };
 
         return View(vm);
@@ -115,6 +117,9 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditProfile(EditProfileViewModel model)
     {
+        // Remove IFormFile from validation — handled separately
+        ModelState.Remove("ProfileImage");
+
         if (!ModelState.IsValid)
             return View(model);
 
@@ -134,6 +139,42 @@ public class UsersController : Controller
         user.Position     = model.Position;
         user.ProfileNotes = model.ProfileNotes;
 
+        // Handle image upload
+        if (model.ProfileImage != null && model.ProfileImage.Length > 0)
+        {
+            var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            var ext = Path.GetExtension(model.ProfileImage.FileName).ToLowerInvariant();
+            if (!allowed.Contains(ext))
+            {
+                ModelState.AddModelError("ProfileImage", "Only JPG, PNG, GIF or WEBP images are allowed.");
+                return View(model);
+            }
+            if (model.ProfileImage.Length > 5 * 1024 * 1024)
+            {
+                ModelState.AddModelError("ProfileImage", "Image must be smaller than 5 MB.");
+                return View(model);
+            }
+
+            // Delete old image
+            if (!string.IsNullOrEmpty(user.ProfileImagePath))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", user.ProfileImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(oldPath))
+                    System.IO.File.Delete(oldPath);
+            }
+
+            // Save new image
+            var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
+            Directory.CreateDirectory(uploadsDir);
+            var fileName = $"{user.Id}_{DateTime.UtcNow:yyyyMMddHHmmss}{ext}";
+            var filePath = Path.Combine(uploadsDir, fileName);
+
+            using var stream = new FileStream(filePath, FileMode.Create);
+            await model.ProfileImage.CopyToAsync(stream);
+
+            user.ProfileImagePath = $"/uploads/profiles/{fileName}";
+        }
+
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
         {
@@ -144,6 +185,29 @@ public class UsersController : Controller
 
         TempData["Success"] = $"Profile for '{user.FullName}' updated successfully.";
         return RedirectToAction(nameof(Details), new { id = model.Id });
+    }
+
+    // POST: Users/RemovePhoto/id
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemovePhoto(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        if (!string.IsNullOrEmpty(user.ProfileImagePath))
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+                user.ProfileImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            if (System.IO.File.Exists(filePath))
+                System.IO.File.Delete(filePath);
+
+            user.ProfileImagePath = null;
+            await _userManager.UpdateAsync(user);
+        }
+
+        TempData["Success"] = "Profile photo removed.";
+        return RedirectToAction(nameof(Details), new { id });
     }
 
     // GET: Users/Create

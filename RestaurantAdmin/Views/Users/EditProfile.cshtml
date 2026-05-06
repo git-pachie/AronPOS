@@ -10,14 +10,58 @@
     <h4 class="fw-bold mb-0"><i class="bi bi-person-gear me-2 text-primary"></i>Edit Profile</h4>
 </div>
 
-<form asp-action="EditProfile" method="post">
+<form asp-action="EditProfile" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
     <input asp-for="Id" type="hidden" />
     <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
 
     <div class="row g-4">
 
-        <!-- Personal Information -->
+        <!-- Profile Photo -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-4 text-uppercase small text-muted">
+                        <i class="bi bi-camera me-2"></i>Profile Photo
+                    </h6>
+                    <div class="d-flex align-items-center gap-4 flex-wrap">
+
+                        <!-- Current photo preview -->
+                        <div id="photoPreviewWrap">
+                            @if (!string.IsNullOrEmpty(Model.ProfileImagePath))
+                            {
+                                <img id="photoPreview" src="@Model.ProfileImagePath"
+                                     class="rounded-circle object-fit-cover border border-3 shadow"
+                                     style="width:100px;height:100px;" />
+                            }
+                            else
+                            {
+                                <div id="photoPreview" class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white fs-2 shadow"
+                                     style="width:100px;height:100px;background:linear-gradient(135deg,#1565C0,#42A5F5);">
+                                    @{
+                                        var initials2 = string.IsNullOrEmpty(Model.FullName) ? "?" :
+                                            string.Concat(Model.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                                .Take(2).Select(w => w[0].ToString().ToUpper()));
+                                    }
+                                    @initials2
+                                </div>
+                            }
+                        </div>
+
+                        <div>
+                            <label for="profileImageInput" class="btn btn-outline-primary btn-sm mb-2">
+                                <i class="bi bi-upload me-1"></i>Choose Photo
+                            </label>
+                            <input type="file" id="profileImageInput" name="ProfileImage"
+                                   accept="image/jpeg,image/png,image/gif,image/webp"
+                                   class="d-none" onchange="previewPhoto(this)" />
+                            <div class="text-muted small">JPG, PNG, GIF or WEBP — max 5 MB</div>
+                            <div id="photoFileName" class="small text-success mt-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
@@ -148,4 +192,23 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScripts")
+    <script>
+        function previewPhoto(input) {
+            if (!input.files || !input.files[0]) return;
+            var file = input.files[0];
+
+            // Show filename
+            document.getElementById('photoFileName').textContent = '✓ ' + file.name;
+
+            // Live preview
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var wrap = document.getElementById('photoPreviewWrap');
+                wrap.innerHTML = '<img src="' + e.target.result + '" ' +
+                    'class="rounded-circle object-fit-cover border border-3 shadow" ' +
+                    'style="width:100px;height:100px;" />';
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
 }

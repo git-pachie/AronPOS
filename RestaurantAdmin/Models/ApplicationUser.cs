@@ -22,4 +22,5 @@ public class ApplicationUser : IdentityUser
     public string? Department { get; set; }
     public string? Position { get; set; }
     public DateTime? LastLoginAt { get; set; }
+    public string? ProfileImagePath { get; set; }
 }

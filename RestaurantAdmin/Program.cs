@@ -86,7 +86,48 @@ using (var scope = app.Services.CreateScope())
         }
         else
         {
-            logger.LogInformation("Database schema already exists.");
+            logger.LogInformation("Database schema already exists. Checking for missing columns...");
+
+            // Add new profile columns to AspNetUsers if they don't exist yet
+            var conn2 = context.Database.GetDbConnection();
+            if (conn2.State != System.Data.ConnectionState.Open)
+                await conn2.OpenAsync();
+
+            var profileColumns = new Dictionary<string, string>
+            {
+                ["FirstName"]        = "NVARCHAR(100) NULL",
+                ["LastName"]         = "NVARCHAR(100) NULL",
+                ["Address"]          = "NVARCHAR(200) NULL",
+                ["City"]             = "NVARCHAR(100) NULL",
+                ["Country"]          = "NVARCHAR(100) NULL",
+                ["Gender"]           = "NVARCHAR(20) NULL",
+                ["DateOfBirth"]      = "DATETIME2 NULL",
+                ["Department"]       = "NVARCHAR(100) NULL",
+                ["Position"]         = "NVARCHAR(100) NULL",
+                ["ProfileNotes"]     = "NVARCHAR(1000) NULL",
+                ["LastLoginAt"]      = "DATETIME2 NULL",
+                ["ProfileImagePath"] = "NVARCHAR(500) NULL",
+            };
+
+            foreach (var col in profileColumns)
+            {
+                using var checkCmd = conn2.CreateCommand();
+                checkCmd.CommandText = $@"
+                    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_NAME = 'AspNetUsers' AND COLUMN_NAME = '{col.Key}'";
+                var exists = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
+
+                if (exists == 0)
+                {
+                    using var alterCmd = conn2.CreateCommand();
+                    alterCmd.CommandText = $"ALTER TABLE [AspNetUsers] ADD [{col.Key}] {col.Value}";
+                    await alterCmd.ExecuteNonQueryAsync();
+                    logger.LogInformation("Added missing column: AspNetUsers.{Column}", col.Key);
+                }
+            }
+
+            await conn2.CloseAsync();
+            logger.LogInformation("Column check complete.");
         }
 
         await DbSeeder.SeedAsync(services, builder.Configuration);
