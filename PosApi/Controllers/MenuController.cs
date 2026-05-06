@@ -66,13 +66,14 @@ public class MenuController : ControllerBase
             IsActive = c.IsActive,
             Items = c.MenuItems.Select(m => new MenuItemDto
             {
-                Id = m.Id,
-                Name = m.Name,
-                Description = m.Description,
-                Price = m.Price,
-                IsAvailable = m.IsAvailable,
+                Id             = m.Id,
+                Name           = m.Name,
+                Description    = m.Description,
+                Price          = m.Price,
+                IsAvailable    = m.IsAvailable,
                 MenuCategoryId = m.MenuCategoryId,
-                CategoryName = c.Name
+                CategoryName   = c.Name,
+                ImagePath      = m.ImagePath
             }).ToList()
         }).ToList();
 
@@ -100,13 +101,14 @@ public class MenuController : ControllerBase
             .OrderBy(m => m.Name)
             .Select(m => new MenuItemDto
             {
-                Id = m.Id,
-                Name = m.Name,
-                Description = m.Description,
-                Price = m.Price,
-                IsAvailable = m.IsAvailable,
+                Id             = m.Id,
+                Name           = m.Name,
+                Description    = m.Description,
+                Price          = m.Price,
+                IsAvailable    = m.IsAvailable,
                 MenuCategoryId = m.MenuCategoryId,
-                CategoryName = m.MenuCategory.Name
+                CategoryName   = m.MenuCategory.Name,
+                ImagePath      = m.ImagePath
             })
             .ToListAsync();
 
@@ -131,13 +133,14 @@ public class MenuController : ControllerBase
 
         return Ok(new MenuItemDto
         {
-            Id = item.Id,
-            Name = item.Name,
-            Description = item.Description,
-            Price = item.Price,
-            IsAvailable = item.IsAvailable,
+            Id             = item.Id,
+            Name           = item.Name,
+            Description    = item.Description,
+            Price          = item.Price,
+            IsAvailable    = item.IsAvailable,
             MenuCategoryId = item.MenuCategoryId,
-            CategoryName = item.MenuCategory.Name
+            CategoryName   = item.MenuCategory.Name,
+            ImagePath      = item.ImagePath
         });
     }
 }

@@ -9,6 +9,7 @@ public class MenuItemDto
     public bool IsAvailable { get; set; }
     public int MenuCategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
+    public string? ImagePath { get; set; }
 }
 
 public class MenuCategoryDto

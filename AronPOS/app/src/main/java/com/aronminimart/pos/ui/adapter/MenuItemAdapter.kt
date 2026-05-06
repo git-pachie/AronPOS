@@ -45,6 +45,8 @@ class MenuItemAdapter(
                     .load(fullUrl)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .centerCrop()
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_menu_report_image)
                     .into(binding.ivItemImage)
 
                 binding.ivItemImage.visibility = View.VISIBLE
