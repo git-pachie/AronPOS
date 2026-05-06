@@ -149,11 +149,7 @@ public class UsersController : Controller
                 ModelState.AddModelError("ProfileImage", "Only JPG, PNG, GIF or WEBP images are allowed.");
                 return View(model);
             }
-            if (model.ProfileImage.Length > 5 * 1024 * 1024)
-            {
-                ModelState.AddModelError("ProfileImage", "Image must be smaller than 5 MB.");
-                return View(model);
-            }
+            // No file size limit enforced — up to 1 GB allowed by server config
 
             // Delete old image
             if (!string.IsNullOrEmpty(user.ProfileImagePath))

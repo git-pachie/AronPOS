@@ -168,6 +168,8 @@ public class MenuController : Controller
     // POST: Menu/CreateItem
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [RequestSizeLimit(1L * 1024 * 1024 * 1024)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 1L * 1024 * 1024 * 1024)]
     public async Task<IActionResult> CreateItem(MenuItemViewModel model, IFormFile? imageFile)
     {
         ModelState.Remove("ImageFile");
@@ -229,6 +231,8 @@ public class MenuController : Controller
     // POST: Menu/EditItem
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [RequestSizeLimit(1L * 1024 * 1024 * 1024)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 1L * 1024 * 1024 * 1024)]
     public async Task<IActionResult> EditItem(MenuItemViewModel model, IFormFile? imageFile)
     {
         ModelState.Remove("ImageFile");
@@ -393,8 +397,7 @@ public class MenuController : Controller
         if (!allowed.Contains(ext))
             return (null, "Only JPG, PNG, GIF or WEBP images are allowed.");
 
-        if (file.Length > 5 * 1024 * 1024)
-            return (null, "Image must be smaller than 5 MB.");
+        // No file size limit enforced — up to 1 GB allowed by server config
 
         // Delete old image first
         DeleteImageFile(oldPath);

@@ -36,6 +36,19 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddControllersWithViews();
 
+// ─── Upload size limits (1 GB) ────────────────────────────────────────────────
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 1L * 1024 * 1024 * 1024; // 1 GB
+    options.ValueLengthLimit         = int.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
+
+builder.WebHost.ConfigureKestrel(kestrel =>
+{
+    kestrel.Limits.MaxRequestBodySize = 1L * 1024 * 1024 * 1024; // 1 GB
+});
+
 var app = builder.Build();
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
