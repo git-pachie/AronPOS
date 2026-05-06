@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RestaurantAdmin.Data;
-using RestaurantAdmin.Helpers;
 using RestaurantAdmin.Models;
 using RestaurantAdmin.ViewModels;
 
@@ -236,6 +235,7 @@ public class MenuController : Controller
     public async Task<IActionResult> EditItem(MenuItemViewModel model, IFormFile? imageFile)
     {
         ModelState.Remove("ImageFile");
+        ModelState.Remove("Price"); // Price is display-only in edit form
 
         if (!ModelState.IsValid)
         {
