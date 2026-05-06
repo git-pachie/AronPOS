@@ -108,7 +108,6 @@ using (var scope = app.Services.CreateScope())
                 ["LastLoginAt"]      = "DATETIME2 NULL",
                 ["ProfileImagePath"] = "NVARCHAR(500) NULL",
             };
-
             foreach (var col in profileColumns)
             {
                 using var checkCmd = conn2.CreateCommand();
@@ -124,6 +123,19 @@ using (var scope = app.Services.CreateScope())
                     await alterCmd.ExecuteNonQueryAsync();
                     logger.LogInformation("Added missing column: AspNetUsers.{Column}", col.Key);
                 }
+            }
+
+            // Add ImagePath to MenuItems if missing
+            using var checkImg = conn2.CreateCommand();
+            checkImg.CommandText = @"SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'MenuItems' AND COLUMN_NAME = 'ImagePath'";
+            var imgExists = Convert.ToInt32(await checkImg.ExecuteScalarAsync());
+            if (imgExists == 0)
+            {
+                using var alterImg = conn2.CreateCommand();
+                alterImg.CommandText = "ALTER TABLE [MenuItems] ADD [ImagePath] NVARCHAR(500) NULL";
+                await alterImg.ExecuteNonQueryAsync();
+                logger.LogInformation("Added missing column: MenuItems.ImagePath");
             }
 
             await conn2.CloseAsync();

@@ -23,6 +23,6 @@ public class MenuItem
 
     public int MenuCategoryId { get; set; }
     public MenuCategory MenuCategory { get; set; } = null!;
-
+    public string? ImagePath { get; set; }
     public ICollection<MenuItemPriceHistory> PriceHistory { get; set; } = new List<MenuItemPriceHistory>();
 }

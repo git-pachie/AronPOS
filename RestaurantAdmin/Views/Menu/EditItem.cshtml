@@ -8,12 +8,63 @@
     <h4 class="fw-bold mb-0"><i class="bi bi-pencil me-2 text-success"></i>Edit Menu Item</h4>
 </div>
 
-<div class="card border-0 shadow-sm" style="max-width:600px;">
+<div class="card border-0 shadow-sm" style="max-width:680px;">
     <div class="card-body p-4">
-        <form asp-action="EditItem" method="post">
+        <form asp-action="EditItem" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <input asp-for="Id" type="hidden" />
             <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <!-- Product Image -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Product Image</label>
+                <div class="d-flex align-items-start gap-3 flex-wrap">
+
+                    <!-- Current / preview -->
+                    <div class="rounded-3 border overflow-hidden flex-shrink-0 position-relative"
+                         style="width:110px;height:110px;background:var(--ra-table-head);">
+                        @if (!string.IsNullOrEmpty(Model.ImagePath))
+                        {
+                            <img id="imgPreview" src="@Model.ImagePath" alt="@Model.Name"
+                                 class="w-100 h-100 object-fit-cover" />
+                        }
+                        else
+                        {
+                            <div id="imgPreview" class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                <i class="bi bi-image text-muted fs-2" id="imgPlaceholder"></i>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex flex-column gap-2">
+                        <!-- Upload new -->
+                        <div>
+                            <label for="imageInput" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-upload me-1"></i>
+                                @(string.IsNullOrEmpty(Model.ImagePath) ? "Upload Image" : "Change Image")
+                            </label>
+                            <input type="file" id="imageInput" name="ImageFile"
+                                   accept="image/jpeg,image/png,image/gif,image/webp"
+                                   class="d-none" onchange="previewImage(this)" />
+                            <div class="text-muted small mt-1">JPG, PNG, GIF or WEBP — max 5 MB</div>
+                            <div id="imgFileName" class="small text-success mt-1"></div>
+                            <span asp-validation-for="ImageFile" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Remove current image -->
+                        @if (!string.IsNullOrEmpty(Model.ImagePath))
+                        {
+                            <form asp-action="RemoveItemImage" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('Remove this product image?')">
+                                    <i class="bi bi-trash me-1"></i>Remove Image
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
 
             <div class="mb-3">
                 <label asp-for="Name" class="form-label fw-semibold"></label>
@@ -30,7 +81,7 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-semibold">Current Price</label>
-                    <div class="form-control bg-light">@Model.Price.ToString("C")</div>
+                    <div class="form-control" style="background:var(--ra-table-head);">@Model.Price.ToString("C")</div>
                     <small class="text-muted">Use "Update Price" to change price</small>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -60,4 +111,17 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScripts")
+    <script>
+        function previewImage(input) {
+            if (!input.files || !input.files[0]) return;
+            var file = input.files[0];
+            document.getElementById('imgFileName').textContent = '✓ ' + file.name;
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var wrap = document.getElementById('imgPreview');
+                wrap.innerHTML = '<img src="' + e.target.result + '" class="w-100 h-100 object-fit-cover" />';
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
 }

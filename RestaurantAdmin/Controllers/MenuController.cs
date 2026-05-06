@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RestaurantAdmin.Data;
+using RestaurantAdmin.Helpers;
 using RestaurantAdmin.Models;
 using RestaurantAdmin.ViewModels;
 
@@ -136,7 +137,8 @@ public class MenuController : Controller
                 Price = m.Price,
                 IsAvailable = m.IsAvailable,
                 MenuCategoryId = m.MenuCategoryId,
-                CategoryName = m.MenuCategory.Name
+                CategoryName = m.MenuCategory.Name,
+                ImagePath = m.ImagePath
             })
             .ToListAsync();
 
@@ -162,8 +164,22 @@ public class MenuController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateItem(MenuItemViewModel model)
     {
+        ModelState.Remove("ImageFile");
+
         if (!ModelState.IsValid)
         {
+            model.Categories = await GetCategoryViewModels();
+            return View(model);
+        }
+
+        string? imagePath = null;
+        try
+        {
+            imagePath = await ImageHelper.SaveProductImageAsync(model.ImageFile);
+        }
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError("ImageFile", ex.Message);
             model.Categories = await GetCategoryViewModels();
             return View(model);
         }
@@ -174,7 +190,8 @@ public class MenuController : Controller
             Description = model.Description,
             Price = model.Price,
             IsAvailable = model.IsAvailable,
-            MenuCategoryId = model.MenuCategoryId
+            MenuCategoryId = model.MenuCategoryId,
+            ImagePath = imagePath
         });
 
         await _context.SaveChangesAsync();
@@ -195,6 +212,7 @@ public class MenuController : Controller
             Price = item.Price,
             IsAvailable = item.IsAvailable,
             MenuCategoryId = item.MenuCategoryId,
+            ImagePath = item.ImagePath,
             Categories = await GetCategoryViewModels()
         });
     }
@@ -203,6 +221,8 @@ public class MenuController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditItem(MenuItemViewModel model)
     {
+        ModelState.Remove("ImageFile");
+
         if (!ModelState.IsValid)
         {
             model.Categories = await GetCategoryViewModels();
@@ -218,9 +238,41 @@ public class MenuController : Controller
         item.MenuCategoryId = model.MenuCategoryId;
         item.UpdatedAt = DateTime.UtcNow;
 
+        // Handle image upload
+        if (model.ImageFile != null && model.ImageFile.Length > 0)
+        {
+            try
+            {
+                item.ImagePath = await ImageHelper.SaveProductImageAsync(model.ImageFile, item.ImagePath);
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError("ImageFile", ex.Message);
+                model.Categories = await GetCategoryViewModels();
+                return View(model);
+            }
+        }
+
         await _context.SaveChangesAsync();
         TempData["Success"] = $"Menu item '{item.Name}' updated.";
         return RedirectToAction(nameof(Items));
+    }
+
+    // POST: Menu/RemoveItemImage/id
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveItemImage(int id)
+    {
+        var item = await _context.MenuItems.FindAsync(id);
+        if (item == null) return NotFound();
+
+        ImageHelper.DeleteImage(item.ImagePath);
+        item.ImagePath = null;
+        item.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        TempData["Success"] = $"Image removed from '{item.Name}'.";
+        return RedirectToAction(nameof(EditItem), new { id });
     }
 
     // GET: Menu/UpdatePrice/id
@@ -258,7 +310,6 @@ public class MenuController : Controller
 
         var currentUserId = _userManager.GetUserId(User) ?? string.Empty;
 
-        // Record price history
         _context.MenuItemPriceHistories.Add(new MenuItemPriceHistory
         {
             MenuItemId = item.Id,
@@ -315,6 +366,7 @@ public class MenuController : Controller
         var item = await _context.MenuItems.FindAsync(id);
         if (item == null) return NotFound();
 
+        ImageHelper.DeleteImage(item.ImagePath);
         _context.MenuItems.Remove(item);
         await _context.SaveChangesAsync();
         TempData["Success"] = $"Menu item '{item.Name}' deleted.";
