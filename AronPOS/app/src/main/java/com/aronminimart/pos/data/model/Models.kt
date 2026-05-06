@@ -19,7 +19,8 @@ data class MenuItem(
     val price: Double,
     val isAvailable: Boolean,
     val menuCategoryId: Int,
-    val categoryName: String
+    val categoryName: String,
+    val imagePath: String? = null
 )
 
 // ── Order ─────────────────────────────────────────────────────────────────────

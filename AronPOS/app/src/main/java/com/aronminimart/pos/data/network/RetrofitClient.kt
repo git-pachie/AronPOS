@@ -85,4 +85,7 @@ object RetrofitClient {
         val prefs = context.getSharedPreferences("pos_prefs", Context.MODE_PRIVATE)
         return prefs.getString("api_url", DEFAULT_BASE_URL) ?: DEFAULT_BASE_URL
     }
+
+    // Returns the currently active base URL (no Context needed after init)
+    fun getBaseUrl(): String = baseUrl
 }

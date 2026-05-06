@@ -14,18 +14,35 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="10dp"
+        android:padding="8dp"
         android:gravity="center">
 
-        <!-- Item icon placeholder -->
-        <TextView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:gravity="center"
-            android:text="🛍"
-            android:textSize="24sp"
-            android:background="@drawable/bg_item_icon"
-            android:layout_marginBottom="6dp" />
+        <!-- Product image (real photo or fallback icon) -->
+        <FrameLayout
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginBottom="6dp">
+
+            <!-- Fallback background -->
+            <TextView
+                android:id="@+id/tvItemIcon"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:gravity="center"
+                android:text="🛍"
+                android:textSize="28sp"
+                android:background="@drawable/bg_item_icon" />
+
+            <!-- Actual product image (loaded by Glide) -->
+            <ImageView
+                android:id="@+id/ivItemImage"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/bg_item_icon"
+                android:visibility="gone"
+                android:contentDescription="Product image" />
+        </FrameLayout>
 
         <!-- Item name -->
         <TextView
@@ -33,7 +50,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Item Name"
-            android:textSize="12sp"
+            android:textSize="11sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
             android:gravity="center"
@@ -46,7 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="₱0.00"
-            android:textSize="12sp"
+            android:textSize="11sp"
             android:textColor="@color/primary"
             android:textStyle="bold"
             android:layout_marginTop="2dp" />

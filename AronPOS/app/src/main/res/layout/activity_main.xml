@@ -6,20 +6,82 @@
     android:layout_height="match_parent"
     android:background="@color/bg_screen">
 
-    <!-- Toolbar -->
+    <!-- AppBar with custom header -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:elevation="4dp">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <!-- Custom header row -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="wrap_content"
             android:background="@color/primary"
-            app:titleTextColor="@android:color/white"
-            app:subtitleTextColor="@android:color/white" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="10dp">
+
+            <!-- Store name + subtitle -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvStoreName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ARON MINI MART"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.04" />
+
+                <TextView
+                    android:id="@+id/tvCashierName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cashier: —"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Action buttons -->
+            <ImageButton
+                android:id="@+id/btnRefresh"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@android:drawable/ic_menu_rotate"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="@android:color/white"
+                android:contentDescription="Refresh"
+                android:layout_marginEnd="4dp" />
+
+            <ImageButton
+                android:id="@+id/btnSettings"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@android:drawable/ic_menu_preferences"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="@android:color/white"
+                android:contentDescription="Settings"
+                android:layout_marginEnd="4dp" />
+
+            <!-- User avatar -->
+            <ImageButton
+                android:id="@+id/btnUserAvatar"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@android:drawable/ic_lock_power_off"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="@android:color/white"
+                android:contentDescription="Logout"
+                android:layout_marginStart="4dp" />
+
+        </LinearLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -50,33 +112,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical">
-
-                <!-- Store header -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/primary"
-                    android:paddingHorizontal="16dp"
-                    android:paddingBottom="12dp"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tvStoreName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="ARON MINI MART"
-                        android:textColor="@android:color/white"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.05" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Point of Sale"
-                        android:textColor="#CCFFFFFF"
-                        android:textSize="12sp" />
-                </LinearLayout>
 
                 <!-- Category chips -->
                 <HorizontalScrollView
@@ -171,7 +206,6 @@
                             android:visibility="gone" />
                     </LinearLayout>
 
-                    <!-- Cart items list (max 3 rows visible) -->
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvCart"
                         android:layout_width="match_parent"
@@ -180,7 +214,6 @@
                         android:paddingHorizontal="16dp"
                         android:nestedScrollingEnabled="true" />
 
-                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
@@ -196,7 +229,6 @@
                         android:paddingTop="8dp"
                         android:paddingBottom="4dp">
 
-                        <!-- Left: Cash input -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -226,7 +258,6 @@
                             </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
 
-                        <!-- Right: Totals -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -279,7 +310,6 @@
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Submit button -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSubmitOrder"
                         android:layout_width="match_parent"

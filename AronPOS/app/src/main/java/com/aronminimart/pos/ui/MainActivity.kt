@@ -3,8 +3,6 @@ package com.aronminimart.pos.ui
 import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -41,7 +39,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(binding.toolbar)
+        // No setSupportActionBar — using custom header
         setupAdapters()
         observeViewModel()
         setupListeners()
@@ -73,10 +71,9 @@ class MainActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.storeName.observe(this) { name ->
             binding.tvStoreName.text = name
-            supportActionBar?.title = name
             // Show cashier name in subtitle
             val cashier = session.getFullName().ifEmpty { session.getUsername() }
-            supportActionBar?.subtitle = "Cashier: $cashier"
+            binding.tvCashierName.text = "Cashier: $cashier"
         }
 
         viewModel.isLoading.observe(this) { loading ->
@@ -202,6 +199,13 @@ class MainActivity : AppCompatActivity() {
             viewModel.loadData()
             binding.swipeRefresh.isRefreshing = false
         }
+
+        // Header buttons
+        binding.btnRefresh.setOnClickListener { viewModel.loadData() }
+        binding.btnSettings.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+        binding.btnUserAvatar.setOnClickListener { confirmLogout() }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

@@ -55,8 +55,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
     implementation("androidx.activity:activity-ktx:1.9.3")
 
-    // CardView
-    implementation("androidx.cardview:cardview:1.0.0")
+    // Glide for image loading
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
     // SwipeRefreshLayout
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
