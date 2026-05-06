@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
 using PosApi.Data;
 
@@ -64,10 +65,58 @@ app.UseSwaggerUI(options =>
 
 // Removed UseHttpsRedirection — Android emulator uses plain HTTP on port 5000
 app.UseAuthorization();
+
+// ─── Serve product images from the admin app's wwwroot/uploads ────────────────
+var adminAppPath = builder.Configuration["AdminAppPath"];
+if (!string.IsNullOrEmpty(adminAppPath))
+{
+    // Resolve relative path from PosApi project directory
+    var uploadsPath = Path.GetFullPath(
+        Path.Combine(AppContext.BaseDirectory, adminAppPath, "uploads"));
+
+    if (!Directory.Exists(uploadsPath))
+    {
+        // Try relative to current working directory (when running from VS)
+        uploadsPath = Path.GetFullPath(
+            Path.Combine(Directory.GetCurrentDirectory(), adminAppPath, "uploads"));
+    }
+
+    if (Directory.Exists(uploadsPath))
+    {
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new PhysicalFileProvider(uploadsPath),
+            RequestPath  = "/uploads"
+        });
+        app.Logger.LogInformation("Serving static files from: {Path}", uploadsPath);
+    }
+    else
+    {
+        app.Logger.LogWarning("Uploads folder not found at: {Path}. Images will not be served.", uploadsPath);
+    }
+}
+
 app.MapControllers();
 
 // Redirect root to Swagger
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
+
+// Debug: test image serving
+app.MapGet("/api/debug/images", (IConfiguration config, IWebHostEnvironment env) =>
+{
+    var adminPath = config["AdminAppPath"] ?? "not set";
+    var resolved1 = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, adminPath, "uploads"));
+    var resolved2 = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), adminPath, "uploads"));
+    return Results.Ok(new {
+        adminAppPath = adminPath,
+        baseDirectory = AppContext.BaseDirectory,
+        currentDirectory = Directory.GetCurrentDirectory(),
+        resolvedPath1 = resolved1,
+        resolvedPath2 = resolved2,
+        path1Exists = Directory.Exists(resolved1),
+        path2Exists = Directory.Exists(resolved2)
+    });
+}).ExcludeFromDescription();
 
 // ─── Initialize Database ───────────────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
