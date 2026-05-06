@@ -32,12 +32,13 @@ public class UsersController : Controller
             var roles = await _userManager.GetRolesAsync(user);
             viewModels.Add(new UserListViewModel
             {
-                Id = user.Id,
-                FullName = user.FullName,
-                Email = user.Email ?? string.Empty,
-                IsSuspended = user.IsSuspended,
-                CreatedAt = user.CreatedAt,
-                Roles = roles.ToList()
+                Id               = user.Id,
+                FullName         = user.FullName,
+                Email            = user.Email ?? string.Empty,
+                IsSuspended      = user.IsSuspended,
+                CreatedAt        = user.CreatedAt,
+                Roles            = roles.ToList(),
+                ProfileImagePath = user.ProfileImagePath
             });
         }
 

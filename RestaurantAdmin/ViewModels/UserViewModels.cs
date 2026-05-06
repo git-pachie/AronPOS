@@ -56,6 +56,7 @@ public class UserListViewModel
     public bool IsSuspended { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<string> Roles { get; set; } = new();
+    public string? ProfileImagePath { get; set; }
 }
 
 public class ResetPasswordViewModel
