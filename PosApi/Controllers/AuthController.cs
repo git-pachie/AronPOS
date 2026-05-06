@@ -41,13 +41,16 @@ public class AuthController : ControllerBase
         {
             // Find user by username or email
             string? userId = null, userName = null, email = null,
-                    passwordHash = null, fullName = null;
+                    passwordHash = null, fullName = null,
+                    profileImagePath = null, position = null,
+                    department = null, phoneNumber = null;
             bool isSuspended = false;
 
             using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = @"
-                    SELECT Id, UserName, Email, PasswordHash, FullName, IsSuspended
+                    SELECT Id, UserName, Email, PasswordHash, FullName, IsSuspended,
+                           ProfileImagePath, Position, Department, PhoneNumber
                     FROM AspNetUsers
                     WHERE UserName = @u OR Email = @u";
                 var p = cmd.CreateParameter();
@@ -64,6 +67,10 @@ public class AuthController : ControllerBase
                     passwordHash = reader.IsDBNull(3) ? null : reader.GetString(3);
                     fullName     = reader.IsDBNull(4) ? "" : reader.GetString(4);
                     isSuspended  = reader.GetBoolean(5);
+                    profileImagePath = reader.IsDBNull(6) ? null : reader.GetString(6);
+                    position     = reader.IsDBNull(7) ? null : reader.GetString(7);
+                    department   = reader.IsDBNull(8) ? null : reader.GetString(8);
+                    phoneNumber  = reader.IsDBNull(9) ? null : reader.GetString(9);
                 }
             }
 
@@ -101,12 +108,16 @@ public class AuthController : ControllerBase
 
             return Ok(new LoginResponse
             {
-                UserId   = userId,
-                Username = userName ?? string.Empty,
-                Email    = email    ?? string.Empty,
-                FullName = fullName ?? string.Empty,
-                Roles    = roles,
-                Message  = "Login successful"
+                UserId           = userId,
+                Username         = userName         ?? string.Empty,
+                Email            = email            ?? string.Empty,
+                FullName         = fullName         ?? string.Empty,
+                ProfileImagePath = profileImagePath,
+                Position         = position,
+                Department       = department,
+                PhoneNumber      = phoneNumber,
+                Roles            = roles,
+                Message          = "Login successful"
             });
         }
         finally
@@ -124,10 +135,14 @@ public class LoginRequest
 
 public class LoginResponse
 {
-    public string UserId   { get; set; } = string.Empty;
-    public string Username { get; set; } = string.Empty;
-    public string Email    { get; set; } = string.Empty;
-    public string FullName { get; set; } = string.Empty;
-    public List<string> Roles { get; set; } = new();
-    public string Message  { get; set; } = string.Empty;
+    public string UserId           { get; set; } = string.Empty;
+    public string Username         { get; set; } = string.Empty;
+    public string Email            { get; set; } = string.Empty;
+    public string FullName         { get; set; } = string.Empty;
+    public string? ProfileImagePath { get; set; }
+    public string? Position        { get; set; }
+    public string? Department      { get; set; }
+    public string? PhoneNumber     { get; set; }
+    public List<string> Roles      { get; set; } = new();
+    public string Message          { get; set; } = string.Empty;
 }

@@ -70,16 +70,38 @@
                 android:contentDescription="Settings"
                 android:layout_marginEnd="4dp" />
 
-            <!-- User avatar -->
-            <ImageButton
-                android:id="@+id/btnUserAvatar"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@android:drawable/ic_lock_power_off"
+            <!-- User profile avatar button (shows popup on click) -->
+            <FrameLayout
+                android:id="@+id/btnUserProfile"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="6dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:tint="@android:color/white"
-                android:contentDescription="Logout"
-                android:layout_marginStart="4dp" />
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="User Profile">
+
+                <!-- Fallback initials circle -->
+                <TextView
+                    android:id="@+id/tvAvatarInitials"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:textColor="@color/primary"
+                    android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_avatar_circle" />
+
+                <!-- Actual profile photo -->
+                <ImageView
+                    android:id="@+id/ivAvatarPhoto"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/bg_avatar_circle"
+                    android:visibility="gone"
+                    android:contentDescription="Profile photo" />
+            </FrameLayout>
 
         </LinearLayout>
 

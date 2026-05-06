@@ -48,11 +48,15 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
                     // Save session
                     session.saveSession(
-                        userId   = body.userId,
-                        username = body.username,
-                        fullName = body.fullName,
-                        email    = body.email,
-                        roles    = body.roles
+                        userId           = body.userId,
+                        username         = body.username,
+                        fullName         = body.fullName,
+                        email            = body.email,
+                        roles            = body.roles,
+                        profileImagePath = body.profileImagePath,
+                        position         = body.position,
+                        department       = body.department,
+                        phoneNumber      = body.phoneNumber
                     )
                     _loginState.value = LoginState.Success(body)
                 } else {

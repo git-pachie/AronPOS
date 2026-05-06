@@ -1,18 +1,24 @@
 package com.aronminimart.pos.ui
 
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.Window
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import com.aronminimart.pos.R
+import com.aronminimart.pos.data.network.RetrofitClient
 import com.aronminimart.pos.data.session.SessionManager
 import com.aronminimart.pos.databinding.ActivityMainBinding
+import com.aronminimart.pos.databinding.DialogUserProfileBinding
 import com.aronminimart.pos.ui.adapter.CartAdapter
 import com.aronminimart.pos.ui.adapter.MenuItemAdapter
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.chip.Chip
 
 class MainActivity : AppCompatActivity() {
@@ -29,7 +35,6 @@ class MainActivity : AppCompatActivity() {
 
         session = SessionManager(this)
 
-        // Guard: if not logged in, redirect to login
         if (!session.isLoggedIn()) {
             goToLogin()
             return
@@ -38,11 +43,112 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // No setSupportActionBar — using custom header
         setupAdapters()
         observeViewModel()
         setupListeners()
+        setupHeaderAvatar()
     }
+
+    // ── Header avatar setup ───────────────────────────────────────────────────
+
+    private fun setupHeaderAvatar() {
+        val fullName = session.getFullName().ifEmpty { session.getUsername() }
+        val imagePath = session.getProfileImagePath()
+
+        if (!imagePath.isNullOrEmpty()) {
+            val baseUrl = RetrofitClient.getBaseUrl().trimEnd('/')
+            val fullUrl = if (imagePath.startsWith("http")) imagePath else "$baseUrl$imagePath"
+
+            Glide.with(this)
+                .load(fullUrl)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .circleCrop()
+                .into(binding.ivAvatarPhoto)
+
+            binding.ivAvatarPhoto.visibility  = View.VISIBLE
+            binding.tvAvatarInitials.visibility = View.GONE
+        } else {
+            // Show initials
+            val initials = fullName
+                .split(" ")
+                .filter { it.isNotEmpty() }
+                .take(2)
+                .joinToString("") { it[0].uppercaseChar().toString() }
+            binding.tvAvatarInitials.text = initials.ifEmpty { "?" }
+            binding.tvAvatarInitials.visibility = View.VISIBLE
+            binding.ivAvatarPhoto.visibility    = View.GONE
+        }
+    }
+
+    // ── User profile popup ────────────────────────────────────────────────────
+
+    private fun showUserProfileDialog() {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        val dialogBinding = DialogUserProfileBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogBinding.root)
+
+        // Set dialog width to 90% of screen
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.90).toInt(),
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        // Populate data from session
+        val fullName   = session.getFullName().ifEmpty { session.getUsername() }
+        val username   = session.getUsername()
+        val email      = session.getEmail()
+        val position   = session.getPosition().ifEmpty { "—" }
+        val department = session.getDepartment().ifEmpty { "—" }
+        val phone      = session.getPhone().ifEmpty { "—" }
+        val roles      = session.getRoles()
+        val imagePath  = session.getProfileImagePath()
+
+        dialogBinding.tvDialogFullName.text  = fullName
+        dialogBinding.tvDialogUsername.text  = username.ifEmpty { "—" }
+        dialogBinding.tvDialogEmail.text     = email.ifEmpty { "—" }
+        dialogBinding.tvDialogPosition.text  = position
+        dialogBinding.tvDialogDepartment.text = department
+        dialogBinding.tvDialogPhone.text     = phone
+        dialogBinding.tvDialogRoles.text     = if (roles.isNotEmpty())
+            roles.joinToString(" • ") else "No roles"
+
+        // Load profile photo or show initials
+        if (!imagePath.isNullOrEmpty()) {
+            val baseUrl = RetrofitClient.getBaseUrl().trimEnd('/')
+            val fullUrl = if (imagePath.startsWith("http")) imagePath else "$baseUrl$imagePath"
+
+            Glide.with(this)
+                .load(fullUrl)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .circleCrop()
+                .into(dialogBinding.ivDialogPhoto)
+
+            dialogBinding.ivDialogPhoto.visibility   = View.VISIBLE
+            dialogBinding.tvDialogInitials.visibility = View.GONE
+        } else {
+            val initials = fullName
+                .split(" ")
+                .filter { it.isNotEmpty() }
+                .take(2)
+                .joinToString("") { it[0].uppercaseChar().toString() }
+            dialogBinding.tvDialogInitials.text = initials.ifEmpty { "?" }
+            dialogBinding.tvDialogInitials.visibility = View.VISIBLE
+            dialogBinding.ivDialogPhoto.visibility    = View.GONE
+        }
+
+        // Buttons
+        dialogBinding.btnDialogClose.setOnClickListener { dialog.dismiss() }
+        dialogBinding.btnDialogLogout.setOnClickListener {
+            dialog.dismiss()
+            confirmLogout()
+        }
+
+        dialog.show()
+    }
+
+    // ── Adapters ──────────────────────────────────────────────────────────────
 
     private fun setupAdapters() {
         menuAdapter = MenuItemAdapter(
@@ -67,16 +173,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ── ViewModel observers ───────────────────────────────────────────────────
+
     private fun observeViewModel() {
         viewModel.storeName.observe(this) { name ->
             binding.tvStoreName.text = name
-            // Show cashier name in subtitle
             val cashier = session.getFullName().ifEmpty { session.getUsername() }
             binding.tvCashierName.text = "Cashier: $cashier"
         }
 
         viewModel.isLoading.observe(this) { loading ->
-            binding.progressBar.visibility  = if (loading) View.VISIBLE else View.GONE
+            binding.progressBar.visibility   = if (loading) View.VISIBLE else View.GONE
             binding.layoutContent.visibility = if (loading) View.GONE else View.VISIBLE
         }
 
@@ -138,17 +245,17 @@ class MainActivity : AppCompatActivity() {
         viewModel.orderResult.observe(this) { order ->
             if (order != null) {
                 val intent = Intent(this, ReceiptActivity::class.java).apply {
-                    putExtra("order_number",  order.orderNumber)
-                    putExtra("sub_total",     order.subTotal)
-                    putExtra("cash_given",    order.cashGiven)
-                    putExtra("change",        order.change)
-                    putExtra("order_date",    order.orderDate)
-                    putExtra("items_count",   order.items.size)
-                    putExtra("item_names",    order.items.map { it.itemName }.toTypedArray())
-                    putExtra("item_qtys",     order.items.map { it.quantity }.toIntArray())
-                    putExtra("item_prices",   order.items.map { it.unitPrice }.toDoubleArray())
-                    putExtra("item_totals",   order.items.map { it.lineTotal }.toDoubleArray())
-                    putExtra("cashier_name",  session.getFullName().ifEmpty { session.getUsername() })
+                    putExtra("order_number", order.orderNumber)
+                    putExtra("sub_total",    order.subTotal)
+                    putExtra("cash_given",   order.cashGiven)
+                    putExtra("change",       order.change)
+                    putExtra("order_date",   order.orderDate)
+                    putExtra("items_count",  order.items.size)
+                    putExtra("item_names",   order.items.map { it.itemName }.toTypedArray())
+                    putExtra("item_qtys",    order.items.map { it.quantity }.toIntArray())
+                    putExtra("item_prices",  order.items.map { it.unitPrice }.toDoubleArray())
+                    putExtra("item_totals",  order.items.map { it.lineTotal }.toDoubleArray())
+                    putExtra("cashier_name", session.getFullName().ifEmpty { session.getUsername() })
                 }
                 startActivity(intent)
                 viewModel.clearOrderResult()
@@ -156,12 +263,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ── Listeners ─────────────────────────────────────────────────────────────
+
     private fun setupListeners() {
         binding.btnSubmitOrder.setOnClickListener {
-            val cashText = binding.etCashGiven.text.toString()
-            val cash = cashText.toDoubleOrNull() ?: 0.0
+            val cash = binding.etCashGiven.text.toString().toDoubleOrNull() ?: 0.0
             viewModel.setCashGiven(cash)
-
             val total = viewModel.subTotal.value ?: 0.0
             if (viewModel.cart.value.isNullOrEmpty()) {
                 Toast.makeText(this, "Cart is empty", Toast.LENGTH_SHORT).show()
@@ -199,13 +306,16 @@ class MainActivity : AppCompatActivity() {
             binding.swipeRefresh.isRefreshing = false
         }
 
-        // Header buttons
         binding.btnRefresh.setOnClickListener { viewModel.loadData() }
         binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
-        binding.btnUserAvatar.setOnClickListener { confirmLogout() }
+
+        // Profile avatar button → show popup
+        binding.btnUserProfile.setOnClickListener { showUserProfileDialog() }
     }
+
+    // ── Logout ────────────────────────────────────────────────────────────────
 
     private fun confirmLogout() {
         AlertDialog.Builder(this)

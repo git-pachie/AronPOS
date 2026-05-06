@@ -73,6 +73,10 @@ data class LoginResponse(
     val username: String,
     val email: String,
     val fullName: String,
+    val profileImagePath: String?,
+    val position: String?,
+    val department: String?,
+    val phoneNumber: String?,
     val roles: List<String>,
     val message: String
 )
