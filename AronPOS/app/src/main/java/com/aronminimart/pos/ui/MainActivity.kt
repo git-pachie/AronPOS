@@ -67,26 +67,11 @@ class MainActivity : AppCompatActivity() {
 
             Glide.with(this)
                 .load(fullUrl)
-                .diskCacheStrategy(DiskCacheStrategy.NONE)   // disable cache for debugging
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .skipMemoryCache(true)
                 .circleCrop()
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .error(android.R.drawable.ic_menu_report_image)
-                .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
-                    override fun onLoadFailed(e: com.bumptech.glide.load.engine.GlideException?,
-                        model: Any?, target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
-                        isFirstResource: Boolean): Boolean {
-                        android.util.Log.e("POS_PROFILE", "Avatar load FAILED: $fullUrl — ${e?.message}")
-                        e?.logRootCauses("POS_PROFILE")
-                        return false
-                    }
-                    override fun onResourceReady(resource: android.graphics.drawable.Drawable?,
-                        model: Any?, target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
-                        dataSource: com.bumptech.glide.load.DataSource?, isFirstResource: Boolean): Boolean {
-                        android.util.Log.i("POS_PROFILE", "Avatar load SUCCESS: $fullUrl")
-                        return false
-                    }
-                })
                 .into(binding.ivAvatarPhoto)
 
             binding.ivAvatarPhoto.visibility    = View.VISIBLE
